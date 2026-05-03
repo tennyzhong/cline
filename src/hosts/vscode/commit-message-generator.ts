@@ -25,7 +25,12 @@ export async function getGitDiffStagedFirst(cwd: string): Promise<string> {
 
 let commitGenerationAbortController: AbortController | undefined
 
-const PROMPT = {
+const PROMPT: {
+	system: string
+	user: string
+	instruction: string
+	languageInstructions: Record<string, string>
+} = {
 	system: "You are a helpful assistant that generates informative git commit messages based on git diffs output. Skip preamble and remove all backticks surrounding the commit message.",
 	user: "Notes from developer (ignore if not relevant): {{USER_CURRENT_INPUT}}",
 	instruction: `Based on the provided git diff, generate a concise and descriptive commit message.
@@ -34,7 +39,13 @@ The commit message should:
 1. Has a short title (50-72 characters)
 2. The commit message should adhere to the conventional commit format
 3. Describe what was changed and why
-4. Be clear and informative`,
+4. Be clear and informative
+
+IMPORTANT: Generate the commit message in the same language as the user's preferred language setting ({{USER_LANGUAGE}}). If the preferred language is Chinese (zh-CN or zh-TW), generate the commit message in Chinese. Otherwise, generate it in English.`,
+	languageInstructions: {
+		"zh-CN": "请用简体中文生成提交消息。",
+		"zh-TW": "請用繁體中文生成提交訊息。",
+	},
 }
 
 export async function generateCommitMsg(controller: Controller, scm?: vscode.SourceControl) {
@@ -170,7 +181,11 @@ async function performCommitMsgGeneration(controller: Controller, gitDiff: strin
 	try {
 		vscode.commands.executeCommand("setContext", "cline.isGeneratingCommit", true)
 
-		const prompts = [PROMPT.instruction]
+		const preferredLanguage = controller.stateManager.getGlobalSettingsKey("preferredLanguage") || "English"
+		const languageKey = getLanguageKeyFromDisplay(preferredLanguage)
+		const languageInstruction = PROMPT.languageInstructions[languageKey] || ""
+
+		const prompts = [PROMPT.instruction.replace("{{USER_LANGUAGE}}", preferredLanguage)]
 
 		const workspaceManager = await controller.ensureWorkspaceManager()
 		if (workspaceManager) {
@@ -183,6 +198,10 @@ async function performCommitMsgGeneration(controller: Controller, gitDiff: strin
 		const currentInput = inputBox.value?.trim() || ""
 		if (currentInput) {
 			prompts.push(PROMPT.user.replace("{{USER_CURRENT_INPUT}}", currentInput))
+		}
+
+		if (languageInstruction) {
+			prompts.push(languageInstruction)
 		}
 
 		const truncatedDiff = gitDiff.length > 5000 ? gitDiff.substring(0, 5000) + "\n\n[Diff truncated due to size]" : gitDiff
@@ -246,4 +265,28 @@ function extractCommitMessage(str: string): string {
 		.trim()
 		.replace(/^```[^\n]*\n?|```$/g, "")
 		.trim()
+}
+
+function getLanguageKeyFromDisplay(display: string): string {
+	const languageMap: Record<string, string> = {
+		English: "en",
+		"Arabic - العربية": "ar",
+		"Portuguese - Português (Brasil)": "pt-BR",
+		"Czech - Čeština": "cs",
+		"French - Français": "fr",
+		"German - Deutsch": "de",
+		"Hindi - हिन्दी": "hi",
+		"Hungarian - Magyar": "hu",
+		"Italian - Italiano": "it",
+		"Japanese - 日本語": "ja",
+		"Korean - 한국어": "ko",
+		"Polish - Polski": "pl",
+		"Portuguese - Português (Portugal)": "pt-PT",
+		"Russian - Русский": "ru",
+		"Simplified Chinese - 简体中文": "zh-CN",
+		"Spanish - Español": "es",
+		"Traditional Chinese - 繁體中文": "zh-TW",
+		"Turkish - Türkçe": "tr",
+	}
+	return languageMap[display] || "en"
 }

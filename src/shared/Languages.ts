@@ -71,3 +71,31 @@ export function getLanguageKey(display: LanguageDisplay | undefined): LanguageKe
 	}
 	return DEFAULT_LANGUAGE_SETTINGS
 }
+
+export function getPreferredLanguageInstructions(languageDisplay: string | undefined): string {
+	if (!languageDisplay) {
+		return ""
+	}
+
+	const languageInstructions: Record<string, string> = {
+		"Simplified Chinese - 简体中文": "请使用简体中文回复",
+		"Traditional Chinese - 繁體中文": "請使用繁體中文回覆",
+		"Japanese - 日本語": "日本語で返信してください",
+		"Korean - 한국어": "한국어로 답변해 주세요",
+		"German - Deutsch": "Bitte auf Deutsch antworten",
+		"French - Français": "Veuillez répondre en français",
+		"Spanish - Español": "Por favor responda en español",
+		"Russian - Русский": "Пожалуйста, ответьте на русском языке",
+		"Arabic - العربية": "يرجى الرد بالعربية",
+		"Hindi - हिन्दी": "कृपया हिंदी में उत्तर दें",
+		"Italian - Italiano": "Per favore rispondi in italiano",
+		"Portuguese - Português (Brasil)": "Por favor responda em português brasileiro",
+		"Portuguese - Português (Portugal)": "Por favor responda em português",
+		"Polish - Polski": "Proszę odpowiedzieć po polsku",
+		"Czech - Čeština": "Odpovězte prosím v češtině",
+		"Hungarian - Magyar": "Kérjük, magyarul válaszoljon",
+		"Turkish - Türkçe": "Lütfen Türkçe cevap verin",
+	}
+
+	return languageInstructions[languageDisplay] || ""
+}

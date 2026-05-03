@@ -12,6 +12,7 @@ import type { ApiProvider, ModelInfo } from "@shared/api"
 import type { ChatContent } from "@shared/ChatContent"
 import type { ExtensionState, Platform } from "@shared/ExtensionMessage"
 import type { HistoryItem } from "@shared/HistoryItem"
+import { getPreferredLanguageInstructions } from "@shared/Languages"
 import type { McpMarketplaceCatalog, McpMarketplaceItem } from "@shared/mcp"
 import { type Settings } from "@shared/storage/state-keys"
 import type { Mode } from "@shared/storage/types"
@@ -852,6 +853,7 @@ export class Controller {
 		const browserSettings = this.stateManager.getGlobalSettingsKey("browserSettings")
 		const focusChainSettings = this.stateManager.getGlobalSettingsKey("focusChainSettings")
 		const preferredLanguage = this.stateManager.getGlobalSettingsKey("preferredLanguage")
+		const preferredLanguageInstructions = getPreferredLanguageInstructions(preferredLanguage)
 		const mode = this.stateManager.getGlobalSettingsKey("mode")
 		const strictPlanModeEnabled = this.stateManager.getGlobalSettingsKey("strictPlanModeEnabled")
 		const yoloModeToggled = this.stateManager.getGlobalSettingsKey("yoloModeToggled")
@@ -931,6 +933,7 @@ export class Controller {
 			browserSettings,
 			focusChainSettings,
 			preferredLanguage,
+			preferredLanguageInstructions,
 			mode,
 			strictPlanModeEnabled,
 			yoloModeToggled,
